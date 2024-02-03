@@ -1,9 +1,3 @@
-package AdminPanel;
-
-import Automat.Automat;
-import Edycja.Edycja;
-import Historia.Historia;
-
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -47,7 +41,6 @@ public class AdminPanel extends JFrame {
                 dispose();
             }
         });
-
 
         wyjścieButton.addActionListener(new ActionListener() {
             @Override

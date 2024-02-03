@@ -1,7 +1,3 @@
-package Login;
-
-import AdminPanel.AdminPanel;
-import Automat.Automat;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
