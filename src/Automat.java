@@ -131,7 +131,8 @@ public class Automat extends JFrame {
 
                 if (!chosenProductNumber.isEmpty()) {
                     int productId = Integer.parseInt(chosenProductNumber);
-                    double customerMoney = Double.parseDouble(Money.getText().trim());
+                    double customerMoney = Double.parseDouble(Money.getText().trim().replace(',', '.'));
+
 
                     try (Connection connection = DatabaseConnector.getConnection()) {
                         String query = "SELECT nazwa, cena FROM napoje WHERE id = ?";
@@ -145,9 +146,7 @@ public class Automat extends JFrame {
                                 double productPrice = resultSet.getDouble("cena");
 
                                 if (customerMoney >= productPrice) {
-
                                     double change = customerMoney - productPrice;
-
                                     change = Math.round(change * 100.0) / 100.0;
 
                                     SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -241,7 +240,7 @@ public class Automat extends JFrame {
     }
 
     private void Sum(double amount) {
-        String currentSum = Money.getText().trim();
+        String currentSum = Money.getText().trim().replace(',', '.');
         try {
             double currentPrice = Double.parseDouble(currentSum);
             currentPrice += amount;
