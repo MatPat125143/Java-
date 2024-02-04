@@ -3,6 +3,9 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.sql.*;
+import java.text.DecimalFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 public class Automat extends JFrame {
     private JButton a1Button;
@@ -90,46 +93,94 @@ public class Automat extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {ChosenProdukt("0");}
         });
-        a5ZłButton.addActionListener(new ActionListener() {
+        a10GrButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-
-            }
-        });
-        a2ZłButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-
-            }
-        });
-        a1ZłButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-
-            }
-        });
-        a50GrButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-
+                Sum(0.1);
             }
         });
         a20GrButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-
+                Sum(0.2);
             }
         });
-        a10GrButton.addActionListener(new ActionListener() {
+        a50GrButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-
+                Sum(0.5);
+            }
+        });
+        a1ZłButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {Sum(1.0);}
+        });
+        a2ZłButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) { Sum(2.0);}
+        });
+        a5ZłButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) { Sum(5.0);
             }
         });
         kupButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+                String chosenProductNumber = Chosen.getText().trim();
 
+                if (!chosenProductNumber.isEmpty()) {
+                    int productId = Integer.parseInt(chosenProductNumber);
+                    double customerMoney = Double.parseDouble(Money.getText().trim());
+
+                    try (Connection connection = DatabaseConnector.getConnection()) {
+                        String query = "SELECT nazwa, cena FROM napoje WHERE id = ?";
+
+                        try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+                            preparedStatement.setInt(1, productId);
+                            ResultSet resultSet = preparedStatement.executeQuery();
+
+                            if (resultSet.next()) {
+                                String productName = resultSet.getString("nazwa");
+                                double productPrice = resultSet.getDouble("cena");
+
+                                if (customerMoney >= productPrice) {
+
+                                    double change = customerMoney - productPrice;
+
+                                    change = Math.round(change * 100.0) / 100.0;
+
+                                    SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                                    String transactionDate = dateFormat.format(new Date());
+
+                                    String insertTransactionQuery = "INSERT INTO transakcje (id_napoju, data_transakcji, kwota) VALUES (?, ?, ?)";
+
+                                    try (PreparedStatement insertStatement = connection.prepareStatement(insertTransactionQuery)) {
+                                        insertStatement.setInt(1, productId);
+                                        insertStatement.setString(2, transactionDate);
+                                        insertStatement.setDouble(3, productPrice);
+                                        insertStatement.executeUpdate();
+
+                                        JOptionPane.showMessageDialog(null, "Transakcja udana!\n"
+                                                + "Wydano produkt: " + productName + "\n"
+                                                + "Reszta: " + change +" zł");
+
+                                        Chosen.setText("");
+                                        Money.setText("0.00");
+                                    }
+                                } else {
+                                    JOptionPane.showMessageDialog(null, "Niewystarczająca ilość środków.");
+                                }
+                            } else {
+                                JOptionPane.showMessageDialog(null, "Produkt o podanym numerze nie istnieje.");
+                            }
+                        }
+                    } catch (SQLException ex) {
+                        ex.printStackTrace();
+                    }
+                } else {
+                    JOptionPane.showMessageDialog(null, "Nie wybrano produktu.");
+                }
             }
         });
         anulujButton.addActionListener(new ActionListener() {
@@ -157,7 +208,7 @@ public class Automat extends JFrame {
 
     private void showAssortment() {
         try (Connection connection = DatabaseConnector.getConnection()) {
-            String query = "SELECT id, nazwa, pojemnosc, cena, ilosc FROM napoje";
+            String query = "SELECT id, nazwa, pojemnosc, cena FROM napoje";
 
             try (Statement statement = connection.createStatement()) {
                 ResultSet resultSet = statement.executeQuery(query);
@@ -167,17 +218,15 @@ public class Automat extends JFrame {
                 model.addColumn("Nazwa");
                 model.addColumn("Pojemność");
                 model.addColumn("Cena");
-                model.addColumn("Ilość");
 
                 while (resultSet.next()) {
                     int id = resultSet.getInt("id");
                     String nazwa = resultSet.getString("nazwa");
                     int pojemnosc = resultSet.getInt("pojemnosc");
                     double cena = resultSet.getDouble("cena");
-                    int ilosc = resultSet.getInt("ilosc");
 
-                    Produkt product = new Produkt(id, nazwa, pojemnosc, cena, ilosc);
-                    model.addRow(new Object[]{product.getId(), product.getNazwa(), product.getPojemnosc(), product.getCena(), product.getIlosc()});
+                    Produkt product = new Produkt(id, nazwa, pojemnosc, cena);
+                    model.addRow(new Object[]{product.getId(), product.getNazwa(), product.getPojemnosc(), product.getCena()});
                 }
                 Product.setModel(model);
             }
@@ -191,5 +240,16 @@ public class Automat extends JFrame {
         Chosen.setText(currentText + text);
     }
 
+    private void Sum(double amount) {
+        String currentSum = Money.getText().trim();
+        try {
+            double currentPrice = Double.parseDouble(currentSum);
+            currentPrice += amount;
 
+            DecimalFormat df = new DecimalFormat();
+            Money.setText(df.format(currentPrice));
+        } catch (NumberFormatException ex) {
+            JOptionPane.showMessageDialog(null, "Błąd przetwarzania kwoty. Upewnij się, że wprowadzona kwota jest liczbą.");
+        }
+    }
 }

@@ -3,14 +3,12 @@ public class Produkt {
     private String nazwa;
     private int pojemnosc;
     private double cena;
-    private int ilosc;
 
-    public Produkt(int id, String nazwa, int pojemnosc, double cena, int ilosc) {
+    public Produkt(int id, String nazwa, int pojemnosc, double cena) {
         this.id = id;
         this.nazwa = nazwa;
         this.pojemnosc = pojemnosc;
         this.cena = cena;
-        this.ilosc = ilosc;
     }
 
     public int getId() {
@@ -45,11 +43,4 @@ public class Produkt {
         this.cena = cena;
     }
 
-    public int getIlosc() {
-        return ilosc;
-    }
-
-    public void setIlosc(int ilosc) {
-        this.ilosc = ilosc;
-    }
 }

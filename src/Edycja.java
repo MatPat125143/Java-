@@ -24,7 +24,6 @@ public class Edycja extends JFrame{
     private JLabel NameJ;
     private JLabel PriceJ;
     private JLabel CapacityJ;
-    private JLabel NumberJ;
     private JPanel ActionPanel;
     private JPanel ExitPanel;
     private JTextField productName;
@@ -69,32 +68,20 @@ public class Edycja extends JFrame{
                 }
             }
         });
-        number.addKeyListener(new KeyAdapter() {
-            @Override
-            public void keyTyped(KeyEvent e) {
-                char c = e.getKeyChar();
-                if (!Character.isDigit(c) && c != '.') {
-                    e.consume();
-                    JOptionPane.showMessageDialog(null, "Wprowadź poprawną pojemność (tylko cyfry i kropka).");
-                }
-            }
-        });
         dodajButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 String nazwa = productName.getText();
                 double cena = Double.parseDouble(price.getText());
                 int pojemosc = Integer.parseInt(capacity.getText());
-                int ilosc = Integer.parseInt(number.getText());
 
                 try (Connection connection = DatabaseConnector.getConnection()) {
-                    String query = "INSERT INTO napoje (nazwa, cena, pojemnosc, ilosc) VALUES (?, ?, ?, ?)";
+                    String query = "INSERT INTO napoje (nazwa, cena, pojemnosc) VALUES (?, ?, ?)";
 
                     try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
                         preparedStatement.setString(1, nazwa);
                         preparedStatement.setDouble(2, cena);
                         preparedStatement.setInt(3, pojemosc);
-                        preparedStatement.setInt(4, ilosc);
 
                         int rowsAffected = preparedStatement.executeUpdate();
 
@@ -151,7 +138,7 @@ public class Edycja extends JFrame{
     }
     private void showAssortment() {
         try (Connection connection = DatabaseConnector.getConnection()) {
-            String query = "SELECT id, nazwa, pojemnosc, cena, ilosc FROM napoje";
+            String query = "SELECT id, nazwa, pojemnosc, cena FROM napoje";
 
             try (Statement statement = connection.createStatement()) {
                 ResultSet resultSet = statement.executeQuery(query);
@@ -161,17 +148,15 @@ public class Edycja extends JFrame{
                 model.addColumn("Nazwa");
                 model.addColumn("Pojemność");
                 model.addColumn("Cena");
-                model.addColumn("Ilość");
 
                 while (resultSet.next()) {
                     int id = resultSet.getInt("id");
                     String nazwa = resultSet.getString("nazwa");
                     int pojemnosc = resultSet.getInt("pojemnosc");
                     double cena = resultSet.getDouble("cena");
-                    int ilosc = resultSet.getInt("ilosc");
 
-                    Produkt product = new Produkt(id, nazwa, pojemnosc, cena, ilosc);
-                    model.addRow(new Object[]{product.getId(), product.getNazwa(), product.getPojemnosc(), product.getCena(), product.getIlosc()});
+                    Produkt product = new Produkt(id, nazwa, pojemnosc, cena);
+                    model.addRow(new Object[]{product.getId(), product.getNazwa(), product.getPojemnosc(), product.getCena()});
                 }
                 Product.setModel(model);
             }
