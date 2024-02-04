@@ -156,11 +156,7 @@ public class Automat extends JFrame {
     }
 
     private void showAssortment() {
-        String url = "jdbc:mysql://localhost:3306/produkty?serverTimezone=UTC";
-        String user = "root";
-        String password = "";
-
-        try (Connection connection = DriverManager.getConnection(url, user, password)) {
+        try (Connection connection = DatabaseConnector.getConnection()) {
             String query = "SELECT id, nazwa, pojemnosc, cena, ilosc FROM napoje";
 
             try (Statement statement = connection.createStatement()) {
@@ -180,7 +176,8 @@ public class Automat extends JFrame {
                     double cena = resultSet.getDouble("cena");
                     int ilosc = resultSet.getInt("ilosc");
 
-                    model.addRow(new Object[]{id, nazwa, pojemnosc, cena, ilosc});
+                    Produkt product = new Produkt(id, nazwa, pojemnosc, cena, ilosc);
+                    model.addRow(new Object[]{product.getId(), product.getNazwa(), product.getPojemnosc(), product.getCena(), product.getIlosc()});
                 }
                 Product.setModel(model);
             }

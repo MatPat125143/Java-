@@ -35,11 +35,7 @@ public class Historia extends JFrame {
     }
 
     private void showTransactions() {
-        String url = "jdbc:mysql://localhost:3306/produkty?serverTimezone=UTC";
-        String user = "root";
-        String password = "";
-
-        try (Connection connection = DriverManager.getConnection(url, user, password)) {
+        try (Connection connection = DatabaseConnector.getConnection()) {
             String query = "SELECT t.id, n.nazwa, t.data_transakcji, t.kwota FROM transakcje t JOIN napoje n ON t.id_napoju = n.id;";
 
             try (Statement statement = connection.createStatement()) {
@@ -57,7 +53,8 @@ public class Historia extends JFrame {
                     String data = resultSet.getString("data_transakcji");
                     double kwota = resultSet.getDouble("kwota");
 
-                    model.addRow(new Object[]{id, nazwa, data, kwota});
+                    Transakcje transaction = new Transakcje(id, nazwa, data, kwota);
+                    model.addRow(new Object[]{transaction.getId(), transaction.getNazwa(), transaction.getDataTransakcji(), transaction.getKwota()});
                 }
                 Histori.setModel(model);
             }
